@@ -3,14 +3,14 @@ import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Image, Tex
 import { useAuth } from '../hooks/useAuth';
 import Buttons from '../components/Buttons';
 
-// Simple card component replacement
+// Componente contenedor simple que crea tarjetas con sombra
 const Card = ({ children, style }) => (
   <View style={[styles.card, style]}>
     {children}
   </View>
 );
 
-// Simple text input replacement
+// Input personalizado que incluye etiqueta y diferentes estilos
 const CustomTextInput = ({ 
   label, 
   value, 
@@ -22,6 +22,7 @@ const CustomTextInput = ({
   ...props 
 }) => (
   <View style={[styles.inputContainer, style]}>
+    {/* Etiqueta opcional para el campo */}
     {label && <Text style={styles.inputLabel}>{label}</Text>}
     <View style={[
       styles.input, 
@@ -43,7 +44,7 @@ const CustomTextInput = ({
   </View>
 );
 
-// Simple avatar component
+// Avatar circular que muestra la primera letra del nombre o ✓
 const Avatar = ({ label, size = 40, style }) => {
   const firstLetter = label ? label.charAt(0).toUpperCase() : 'U';
   return (
@@ -54,15 +55,19 @@ const Avatar = ({ label, size = 40, style }) => {
 };
 
 export default function Home({ navigation }) {
+  // Hooks para autenticación y manejo de usuario
   const { user, logout, updateUser, deleteUser } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false); // AGREGADO: estado para saving
-  const [formData, setFormData] = useState({
+  
+  // Estados locales para controlar la funcionalidad
+  const [editing, setEditing] = useState(false);        // Controla si estamos editando
+  const [saving, setSaving] = useState(false);          // Estado de guardado
+  const [formData, setFormData] = useState({            // Datos del formulario
     displayName: '',
     titulo: '',
     anioGraduacion: ''
   });
 
+  // Efecto que inicializa los datos del formulario cuando cambia el usuario
   useEffect(() => {
     if (user) {
       setFormData({
@@ -73,6 +78,7 @@ export default function Home({ navigation }) {
     }
   }, [user]);
 
+  // Maneja los cambios en los campos del formulario
   const handleChange = (name, value) => {
     setFormData({
       ...formData,
@@ -80,17 +86,18 @@ export default function Home({ navigation }) {
     });
   };
 
-  // Función para guardar los datos del perfil
+  // Función para guardar los cambios del perfil
   const handleSave = async () => {
     try {
       setSaving(true);
-      // Mapear los nombres de los campos correctamente
+      // Mapea los datos del formulario al formato esperado por el backend
       const userData = {
         name: formData.displayName,  // Mapear displayName a name
         titulo: formData.titulo,
         anioGraduacion: formData.anioGraduacion
       };
       
+      // Actualiza el usuario en el backend
       await updateUser(userData);
       setEditing(false);
       Alert.alert('Éxito', 'Datos actualizados correctamente');
@@ -101,6 +108,7 @@ export default function Home({ navigation }) {
     }
   };
 
+  // Maneja el cierre de sesión
   const handleLogOut = async () => {
     const result = await logout();
     if (!result.success) {
@@ -108,6 +116,7 @@ export default function Home({ navigation }) {
     }
   };
 
+  // Pantalla de carga mientras se obtienen los datos del usuario
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
@@ -116,10 +125,13 @@ export default function Home({ navigation }) {
     );
   }
 
+  // Función que renderiza cada campo del formulario
+  // Alterna entre modo edición (input) y modo lectura (texto)
   const renderField = (label, value, fieldName, multiline = false, readOnly = false) => (
     <View style={styles.fieldContainer}>
       <Text style={styles.label}>{label}</Text>
       {editing && !readOnly ? (
+        // Modo edición: muestra input editable
         <CustomTextInput
           value={value}
           onChangeText={(text) => handleChange(fieldName, text)}
@@ -129,6 +141,7 @@ export default function Home({ navigation }) {
           numberOfLines={multiline ? 3 : 1}
         />
       ) : (
+        // Modo lectura: muestra solo el valor
         <View style={styles.valueContainer}>
           <Text style={styles.value}>{value}</Text>
         </View>
@@ -139,6 +152,7 @@ export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        {/* Header con avatar y datos básicos del usuario */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <Avatar 
@@ -152,17 +166,21 @@ export default function Home({ navigation }) {
           <Text style={styles.userEmail}>{user.email}</Text>
         </View>
 
+        {/* Tarjeta principal con información del perfil */}
         <Card style={styles.profileCard}>
           <View style={styles.cardContent}>
             <Text style={styles.sectionTitle}>Información Personal</Text>
             
+            {/* Campos del formulario - el email es de solo lectura */}
             {renderField('Correo electrónico', user.email || 'No especificado', 'email', false, true)}
             {renderField('Nombre completo', formData.displayName, 'displayName')}
             {renderField('Título universitario', formData.titulo, 'titulo', true)}
             {renderField('Año de graduación', formData.anioGraduacion, 'anioGraduacion')}
 
+            {/* Botones que cambian según el modo (edición/lectura) */}
             <View style={styles.buttonGroup}>
               {editing ? (
+                // Botones en modo edición: Guardar y Cancelar
                 <View style={styles.editButtonsContainer}>
                   <Buttons
                     mode="contained"
@@ -185,6 +203,7 @@ export default function Home({ navigation }) {
                   </Buttons>
                 </View>
               ) : (
+                // Botón en modo lectura: Editar perfil
                 <Buttons
                   mode="contained"
                   onPress={() => setEditing(true)}
@@ -198,6 +217,7 @@ export default function Home({ navigation }) {
           </View>
         </Card>
 
+        {/* Zona de peligro con acciones irreversibles */}
         <Card style={[styles.profileCard, styles.dangerZone]}>
           <View style={styles.cardContent}>
             <Text style={styles.dangerZoneTitle}>Zona de peligro</Text>
@@ -223,6 +243,7 @@ export default function Home({ navigation }) {
   );
 }
 
+// Estilos de la aplicación - define la apariencia visual
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -237,6 +258,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  // Header con gradiente morado y bordes redondeados
   header: {
     backgroundColor: '#6200ee',
     padding: 20,
@@ -255,6 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: 'center',
   },
+  // Avatar circular con fondo semi-transparente
   avatar: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
@@ -278,6 +301,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 5,
   },
+  // Estilos para las tarjetas con sombras
   card: {
     margin: 15,
     borderRadius: 12,
@@ -325,6 +349,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontWeight: '500',
   },
+  // Estilos para los inputs con bordes y fondos
   input: {
     borderWidth: 1,
     borderColor: '#e0e0e0',
@@ -347,6 +372,7 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
   },
+  // Contenedor para valores en modo lectura
   valueContainer: {
     padding: 12,
     backgroundColor: '#f8f9fa',
@@ -382,6 +408,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#6200ee',
   },
+  // Zona de peligro con borde rojo
   dangerZone: {
     borderLeftWidth: 4,
     borderLeftColor: '#ff3d00',
