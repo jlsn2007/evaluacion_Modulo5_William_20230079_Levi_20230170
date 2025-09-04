@@ -5,5 +5,5 @@
 
 ---
 
-#Video demostrativo de la funcionalidad de la aplicación
+# Video demostrativo de la funcionalidad de la aplicación
 [Haz clic aquí para ver el video](enlace_al_video)
