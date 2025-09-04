@@ -21,12 +21,44 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Si el login es exitoso, gracias a onAuthStateChanged en Navigation.js
-      // se redirige automáticamente a Home
+      console.log('Intentando iniciar sesión con:', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Inicio de sesión exitoso:', userCredential.user);
+      
+      // No es necesario hacer nada más aquí, el listener de autenticación en Navigation.js
+      // se encargará de la redirección
+      
     } catch (error) {
-      console.log(error);
-      Alert.alert("Error al iniciar sesión", error.message);
+      console.error('Error en inicio de sesión:', {
+        code: error.code,
+        message: error.message,
+        email: email,
+        hasPassword: !!password
+      });
+      
+      let errorMessage = 'Error al iniciar sesión';
+      
+      switch(error.code) {
+        case 'auth/user-not-found':
+          errorMessage = 'No existe una cuenta con este correo electrónico';
+          break;
+        case 'auth/wrong-password':
+          errorMessage = 'Contraseña incorrecta';
+          break;
+        case 'auth/invalid-credential':
+          errorMessage = 'Credenciales inválidas. Verifica tu correo y contraseña';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Demasiados intentos fallidos. Intenta más tarde o restablece tu contraseña';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Error de conexión. Verifica tu conexión a Internet e inténtalo de nuevo';
+          break;
+        default:
+          errorMessage = error.message;
+      }
+      
+      Alert.alert("Error", errorMessage);
     }
   };
 
