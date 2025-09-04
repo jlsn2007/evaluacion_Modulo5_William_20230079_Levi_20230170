@@ -1,21 +1,51 @@
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native';
+import { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { onAuthStateChanged } from "firebase/auth";
 
-import Home from '../screens/Home';
-import Add from '../screens/Add';
+import { auth } from "../config/firebase";
+
+import Home from "../screens/Home";
+import LoginScreen from "../screens/LoginScreen";
+import SplashScreen from "../screens/SplashScreen";
+import RegisterScreen from "../screens/RegisterScreen";
 
 const Stack = createNativeStackNavigator();
 
 const Navigation = () => {
-    return (
-        <NavigationContainer>
-            <Stack.Navigator>
-                <Stack.Screen name="Home" component={Home} options={{title:'Home'}} />
-                <Stack.Screen name="Add" component={Add} 
-                options={{presentation:'modal', title:'Agregar productos'}}/>
-            </Stack.Navigator>
-        </NavigationContainer>
-    );
-}
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Escucha cambios de autenticación
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return <SplashScreen />;
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          // Si está logueado → mostrar Home
+          <>
+            <Stack.Screen name="Home" component={Home} />
+          </>
+        ) : (
+          // Si NO está logueado → mostrar auth flow
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
 
 export default Navigation;

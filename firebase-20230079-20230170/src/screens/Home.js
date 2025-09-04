@@ -1,118 +1,84 @@
-// Importación de bibliotecas y componentes necesarios
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { database } from '../config/firebase'; // Importa la configuración de la base de datos de Firebase
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'; // Importa funciones de Firestore para consultas en tiempo real
-import CardProductos from '../components/CardProductos'; // Importa el componente de tarjeta de producto
+import { View, Text, StyleSheet, TextInput } from 'react-native';
+import Buttons from '../components/Buttons';
+import { useAuth } from '../hooks/useAuth'; // tu hook que maneja usuario y logout
 
-// Definición del componente principal Home
-const Home = ({ navigation }) => {
-    // Definición del estado local para almacenar los productos
-    const [productos, setProductos] = useState([]);
+export default function Home({ navigation }) {
+  const { user, logout, updateUser } = useAuth();
 
-    // useEffect se ejecuta cuando el componente se monta
-    useEffect(() => {
-        // Define una consulta a la colección 'productos' en Firestore, ordenada por el campo 'creado' en orden descendente
-        const q = query(collection(database, 'productos'), orderBy('creado', 'desc'));
-        
-        // Escucha cambios en la consulta de Firestore en tiempo real
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const docs = [];
-            querySnapshot.forEach((doc) => {
-                // Empuja cada documento con su ID a la lista de docs
-                docs.push({ id: doc.id, ...doc.data() });
-            });
-            // Actualiza el estado de productos con los datos recibidos
-            setProductos(docs);
-        });
+  // Estado local para los inputs
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
-        // Limpieza de la suscripción al desmontar el componente
-        return () => unsubscribe();
-    }, []);
-
-    // Función para navegar a la pantalla 'Add'
-    const goToAdd = () => { 
-        navigation.navigate('Add');
+  // Cuando el usuario cambia, actualizamos los inputs
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
     }
+  }, [user]);
 
-    // Función que renderiza cada item de la lista
-    const renderItem = ({ item }) => (
-        <CardProductos
-            id={item.id}
-            nombre={item.nombre}
-            precio={item.precio}
-            vendido={item.vendido}
-            imagen={item.imagen}
-        />
-    );
+  const handleSave = async () => {
+    // Aquí llamas la función de tu hook que actualiza los datos del usuario
+    await updateUser({ name, email });
+    alert('Datos actualizados correctamente');
+  };
 
-    // Renderiza la interfaz del componente Home
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Productos Disponibles</Text>
+  const handleLogOut = async () => {
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
 
-            {/* Muestra la lista de productos si hay elementos, de lo contrario muestra un mensaje */}
-            {
-                productos.length !== 0 ?
-                <FlatList
-                    data={productos}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
-                />
-                : 
-                <Text style={styles.Subtitle}>No hay productos disponibles</Text>
-            }
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>
+        Hola {user ? user.name || user.email.split('@')[0] : ''}
+      </Text>
 
-            {/* Botón para navegar a la pantalla de agregar productos */}
-            <TouchableOpacity
-                style={styles.Button}
-                onPress={goToAdd}>
-                <Text style={styles.ButtonText}>Agregar Producto</Text>
-            </TouchableOpacity>
-        </View>
-    );
-};
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre"
+        value={name}
+        onChangeText={setName}
+      />
 
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
 
-// Exporta el componente Home como predeterminado
-export default Home;
+      <Buttons text="Guardar Cambios" action={handleSave} />
+      <Buttons text="Cerrar Sesión" action={handleLogOut} />
+    </View>
+  );
+}
 
-// Estilos para el componente Home
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FEFEFE',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    Subtitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 10,
-        color:'#ff9800'
-    },
-    Button: {
-        backgroundColor: '#0288d1',
-        padding: 10,
-        borderRadius: 5,
-        marginTop: 20,
-        marginHorizontal: 50,
-        paddingVertical: 20,
-    },
-    ButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    list: {
-        flexGrow: 1,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#FEFEFE',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#A93B3F',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 15,
+    fontSize: 16,
+  },
 });

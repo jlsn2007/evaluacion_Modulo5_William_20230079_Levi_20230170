@@ -1,42 +1,39 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from 'firebase/storage';
-import { API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID, test} from '@env';
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { 
+  API_KEY, 
+  AUTH_DOMAIN, 
+  PROJECT_ID, 
+  STORAGE_BUCKET, 
+  MESSAGING_SENDER_ID, 
+  APP_ID 
+} from "@env";
 
-// Your web app's Firebase configuration
+// Configuración de Firebase
 const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: AUTH_DOMAIN,
-  projectId: PROJECT_ID,
-  storageBucket: STORAGE_BUCKET,
-  messagingSenderId: MESSAGING_SENDER_ID,
-  appId: APP_ID    
+  apiKey: "AIzaSyAElb5wNNk8F6qOgcrhc5KkrQCgskjB6mg",
+  authDomain: "evaluacion-firebase-20230170.firebaseapp.com",
+  projectId: "evaluacion-firebase-20230170",
+  storageBucket: "evaluacion-firebase-20230170.firebasestorage.app",
+  messagingSenderId: "1061393147567",
+  appId: "1:1061393147567:web:6883c5dc3f549cb339965a"
 };
-console.log(test)
-console.log("Valor de configuracion", firebaseConfig);
 
-// Initialize Firebase
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
-if (app) {
-  console.log('Firebase initialized successfully');
-} else {
-  console.log('Firebase initialization failed');
-}
 
+// Inicializar Firestore
 const database = getFirestore(app);
-if (database) {
-  console.log('Firestore initialized correctly');
-} else {
-  console.log('Firestore initialization failed');
-}
-/*
+
+// Inicializar Auth con persistencia
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Inicializar Storage
 const storage = getStorage(app);
 
-if (storage) {
-  console.log('storage initialized correctly');
-} else {
-  console.log('storage initialization failed');
-}
-*/
-//export { database,storage };
-export { database };
+export { app, auth, database, storage };
