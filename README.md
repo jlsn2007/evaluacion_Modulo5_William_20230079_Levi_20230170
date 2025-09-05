@@ -6,4 +6,4 @@
 ---
 
 # Funcionalidad de la aplicación
-[Haz clic aquí para ver el video](enlace_al_video)
+[https://drive.google.com/file/d/1Q5k1MuDLPZ2XpYZCpTp884_CrkJhyefZ/view?usp=sharing](enlace_al_video)
